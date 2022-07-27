@@ -67,7 +67,7 @@ project {
         }
         triggers {
             finishBuildTrigger {
-                buildType = "${BuildBackend.id}"
+                buildType = "${buildBackend.id}"
                 successfulOnly = true
             }
         }
