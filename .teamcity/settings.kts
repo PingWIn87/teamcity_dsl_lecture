@@ -31,6 +31,7 @@ version = "2022.04"
 project {
     val backend = GitVcsRoot{
         name = "backend"
+        id = DslContext.createId("backend vcs dsl".replace("[\\s-]+".toRegex(), ""))
         url = "git@github.com:PingWIn87/backend-todo-list-maven.git"
         branch = "maven"
         authMethod = uploadedKey {
@@ -40,6 +41,7 @@ project {
     vcsRoot(backend)
     val buildBackend = BuildType{
         name = "build backend"
+        id = DslContext.createId("build backend dsl".replace("[\\s-]+".toRegex(), ""))
         artifactRules = "target/*.jar => build_result"
         vcs {
             root(backend)
@@ -55,6 +57,7 @@ project {
     buildType(buildBackend)
     val renameArtifact = BuildType{
         name = "rename artifact"
+        id = DslContext.createId("rename backend dsl".replace("[\\s-]+".toRegex(), ""))
         artifactRules = "result/*.jar"
         steps {
             script {
