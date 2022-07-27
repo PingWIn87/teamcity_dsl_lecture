@@ -29,70 +29,64 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 version = "2022.04"
 
 project {
-
-    vcsRoot(Backend)
-
-    buildType(RenameArtifact)
-    buildType(BuildBackend)
-}
-
-object BuildBackend : BuildType({
-    name = "build backend"
-
-    artifactRules = "target/*.jar => build_result"
-
-    vcs {
-        root(Backend)
-    }
-
-    steps {
-        maven {
-            name = "build"
-            goals = "clean install"
-            runnerArgs = "-DskipTests=true"
+    val backend = GitVcsRoot{
+        name = "backend"
+        url = "git@github.com:PingWIn87/backend-todo-list-maven.git"
+        branch = "maven"
+        authMethod = uploadedKey {
+            uploadedKey = "github"
         }
     }
-})
-
-object RenameArtifact : BuildType({
-    name = "rename artifact"
-
-    artifactRules = "result/*.jar"
-
-    steps {
-        script {
-            scriptContent = """
+    vcsRoot(backend)
+    val buildBackend = BuildType{
+        name = "build backend"
+        artifactRules = "target/*.jar => build_result"
+        vcs {
+            root(backend)
+        }
+        steps {
+            maven {
+                name = "build"
+                goals = "clean install"
+                runnerArgs = "-DskipTests=true"
+            }
+        }
+    }
+    buildType(buildBackend)
+    val renameArtifact = BuildType{
+        name = "rename artifact"
+        artifactRules = "result/*.jar"
+        steps {
+            script {
+                scriptContent = """
                 #!/bin/bash
                 mkdir result
                 mv build_result/backend-todo-list-0.0.1-SNAPSHOT.jar result/todo-%build.counter%.jar
             """.trimIndent()
-        }
-    }
-
-    triggers {
-        finishBuildTrigger {
-            buildType = "${BuildBackend.id}"
-            successfulOnly = true
-        }
-    }
-
-    dependencies {
-        dependency(BuildBackend) {
-            snapshot {
-            }
-
-            artifacts {
-                artifactRules = "build_result => build_result"
             }
         }
-    }
-})
+        triggers {
+            finishBuildTrigger {
+                buildType = "${BuildBackend.id}"
+                successfulOnly = true
+            }
+        }
+        dependencies {
+            dependency(buildBackend) {
+                snapshot {
+                }
 
-object Backend : GitVcsRoot({
-    name = "backend"
-    url = "git@github.com:PingWIn87/backend-todo-list-maven.git"
-    branch = "maven"
-    authMethod = uploadedKey {
-        uploadedKey = "github"
+                artifacts {
+                    artifactRules = "build_result => build_result"
+                }
+            }
+        }
     }
-})
+    buildType(renameArtifact)
+    buildTypesOrder = listOf(buildBackend, renameArtifact)
+
+}
+
+
+
+
